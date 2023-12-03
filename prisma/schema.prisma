@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model classrooms {
+  classroom_id     Int        @id
+  classroom_number String     @db.VarChar(20)
+  classroom_name   String     @db.VarChar(60)
+  subjects         subjects[]
+}
+
+model subjects {
+  subject_id    Int         @id
+  subject_name  String      @db.VarChar(50)
+  subject_group String      @db.VarChar(5)
+  classroom_id  Int?
+  timeblock_id  Int?
+  classrooms    classrooms? @relation(fields: [classroom_id], references: [classroom_id], onDelete: NoAction, onUpdate: NoAction)
+  timeblocks    timeblocks? @relation(fields: [timeblock_id], references: [timeblock_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model timeblocks {
+  timeblock_id  Int        @id
+  timeblock_day String     @db.VarChar(10)
+  time_start    DateTime   @db.Time(6)
+  time_end      DateTime   @db.Time(6)
+  subjects      subjects[]
+}
+
+model users {
+  user_id       Int    @id @default(autoincrement())
+  user_name     String @db.VarChar(30)
+  user_account  String @db.VarChar(10)
+  user_email    String @db.VarChar(30)
+  user_password String
+  user_role     String @db.VarChar(20)
+}
