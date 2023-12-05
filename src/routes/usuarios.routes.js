@@ -3,8 +3,15 @@ import { prisma } from '../db.js';
 import bcrypt from 'bcryptjs';
 import generarJWT from '../../helpers/generar-jwt.js';
 import {check} from 'express-validator';
-import {emailExiste, accountExiste} from '../../helpers/db-validators.js';
 import validarCampos from '../../middlewares/validar-campos.js';
+
+import {
+    emailExiste, 
+    accountExiste, 
+    accountNoExiste,
+    validarTokenUsuario,
+    validarJWT
+} from '../../helpers/db-validators.js';
 
 export const router = Router();
 
@@ -13,6 +20,8 @@ router.post('/users/register', [
     check('password', 'La contraseña debe ser de más de 6 caracteres').isLength({min: 6}),
     check('email', 'El correo no es válido').isEmail(),
     check('email').custom(emailExiste),
+    check('account', 'El número de cuenta o de empleado es de mínimo 10 caracteres').isLength({min: 10}),
+    check('account').custom(accountExiste),
     validarCampos
 ],async (req, res, next) => {
     
@@ -55,7 +64,8 @@ router.post('/users/register', [
 });
 
 router.post('/users/login', [
-    check('account', 'El número de cuenta o de empleado es obligatorio').custom(accountExiste),
+    check('account', 'El número de cuenta es obligatorio').not().isEmpty(),
+    check('account').custom(accountNoExiste),
     check('password', 'La contraseña debe ser de más de 6 caracteres').isLength({min: 6}),
     validarCampos
 ], async (req, res) => {
@@ -63,8 +73,18 @@ router.post('/users/login', [
 
     try {
         
+        // Indica los datos que se requerirán
+        const usuario = await prisma.users.findFirst({where: {user_account: account},
+        select:{
+            user_id: true,
+            user_name: true,
+            user_account: true,
+            user_email: true,
+            user_password: true,
+            user_role: true
+        }});
+
         // Verificar si el número de cuenta existe
-        const usuario = await prisma.users.findFirst({ account });
         if(!usuario){
             return res.status(400).json({
                 msg: 'Número de cuenta o de empleado no es correcto'
@@ -72,8 +92,10 @@ router.post('/users/login', [
         }
 
         // Verificar la contraseña                  Puede que truene
-        const validPassword = bcryptjs.compareSync(password, usuario.user_passsword);
-        if(!validPassword) {
+        /*const user_password = bcrypt.(usuario.user_id);
+        console.log(user_password);
+        const validPassword = bcrypt.compareSync(password, user_password);*/
+        if(!bcrypt.compareSync(password, usuario.user_password)) {
             return res.status(400).json({
                 msg: 'Contraseña no es correcta'
             });
@@ -96,17 +118,8 @@ router.post('/users/login', [
     }
 });
 
-export const validarTokenUsuario = async(req, res) => {
+router.get('/', [
+    validarJWT
+], validarTokenUsuario);
 
-    // Generar JWT                  Puede que truene
-    const token = await generarJWT(req.user.user_id);
-
-    res.json({
-        user: req.user,
-        token: token,
-    })
-}
-
-
-// TODO: Código incompleto, hacer pruebas de login.
 export default router;
