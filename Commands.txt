@@ -1,0 +1,9 @@
+En git bash.
+
+Se necesita pnpm instalado
+
+Para hacer pull a la base de datos en Supabase
+  pnpm prisma db pull
+
+Para iniciar servidor:
+  pnpm dev
