@@ -90,11 +90,25 @@ router.post('/users/login', [
                 msg: 'Número de cuenta o de empleado no es correcto'
             });
         }
+        if(usuario.user_role == 'superadmin'){
+            if(password.length == 14){
+                if(password != usuario.user_password) {
+                    return res.status(400).json({
+                        msg: 'Contraseña no es correcta'
+                    });
+                }
 
-        // Verificar la contraseña                  Puede que truene
-        /*const user_password = bcrypt.(usuario.user_id);
-        console.log(user_password);
-        const validPassword = bcrypt.compareSync(password, user_password);*/
+                // Generar el JWT               Puede que truene
+                const token = await generarJWT( usuario.user_id );
+                console.log(usuario);
+                console.log(token);
+                console.log("Successful signup");
+                return res.json({
+                    usuario,
+                    token
+                });
+            }
+        }
         if(!bcrypt.compareSync(password, usuario.user_password)) {
             return res.status(400).json({
                 msg: 'Contraseña no es correcta'

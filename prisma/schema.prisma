@@ -8,14 +8,14 @@ datasource db {
 }
 
 model classrooms {
-  classroom_id     Int        @id
+  classroom_id     Int        @id @default(autoincrement())
   classroom_number String     @db.VarChar(20)
   classroom_name   String     @db.VarChar(60)
   subjects         subjects[]
 }
 
 model subjects {
-  subject_id    Int         @id
+  subject_id    Int         @id @default(autoincrement())
   subject_name  String      @db.VarChar(50)
   subject_group String      @db.VarChar(5)
   classroom_id  Int?
@@ -25,7 +25,7 @@ model subjects {
 }
 
 model timeblocks {
-  timeblock_id  Int        @id
+  timeblock_id  Int        @id @default(autoincrement())
   timeblock_day String     @db.VarChar(10)
   time_start    DateTime   @db.Time(6)
   time_end      DateTime   @db.Time(6)
